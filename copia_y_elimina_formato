@@ -1,0 +1,96 @@
+Sub generarCopiaRespaldo()
+    Dim rutaArchivo As String
+    Dim rutaCopia As String
+    
+    ' rutaCopia = obtenerRutaRespaldo
+    rutaCopia = capturaRuta
+    
+    extension = Mid(ThisWorkbook.Name, InStrRev(ThisWorkbook.Name, "."))
+    
+    rutaCopia = rutaCopia & "\" & mostrarNombreSinExtension() & "_copia " & extension
+    
+    rutaArchivo = ThisWorkbook.FullName
+    
+    WriteLog "Ruta Destino: " & rutaCopia
+    
+    ActiveWorkbook.SaveCopyAs rutaCopia
+    MsgBox "Copia de respaldo creada exitosamente en: " & rutaCopia, vbInformation
+    
+    'Abrir el archivo copiado
+    Workbooks.Open rutaCopia
+    
+    'Seleccionar la hoja y columna que quieres modificar
+    'Cambia "Hoja1" por el nombre de tu hoja y "A:A" por tu columna
+    Set wsDestino = ActiveWorkbook.Sheets("Hoja1")
+    Set columnaACopiar = wsDestino.Range("C:C")
+    
+    'Convertir fórmulas a valores
+    columnaACopiar.Copy
+    columnaACopiar.PasteSpecial xlPasteValues
+    
+    'Guardar y cerrar el archivo copiado
+    ActiveWorkbook.Save
+    ActiveWorkbook.Close
+    Application.DisplayAlerts = True
+    
+
+    
+End Sub
+
+
+Function obtenerRutaRespaldo()
+    rutaArchivo = ThisWorkbook.FullName
+    ' Crear la ruta para la copia añadiendo "_copia" al nombre del archivo
+    rutaCopia = Left(ThisWorkbook.Name, Len(ThisWorkbook.Name) - Len(extensionArchivo) - 5)
+    rutaCopia = rutaCopia & "_copia"
+    extension = Mid(ThisWorkbook.Name, InStrRev(ThisWorkbook.Name, "."))
+    rutaCopia = rutaCopia & extension
+    rutaCopia = ThisWorkbook.Path & "\" & rutaCopia
+    WriteLog "Ruta copia: " & rutaCopia, "INFO"
+    obtenerRutaRespaldo = rutaCopia
+End Function
+
+Function capturaRuta()
+    'Usando un cuadro de diálogo para seleccionar carpeta
+    Dim rutaCarpeta As String
+    With Application.FileDialog(msoFileDialogFolderPicker)
+        .Title = "Selecciona una carpeta"
+        .AllowMultiSelect = False
+        If .Show <> 0 Then
+            rutaCarpeta = .SelectedItems(1)
+            ' Range("A14").Value = rutaCarpeta
+            capturaRuta = rutaCarpeta
+        Else
+            MsgBox "No se seleccionó ninguna carpeta", vbExclamation
+        End If
+    End With
+End Function
+
+Function mostrarNombreSinExtension()
+    Dim nombreSinExt As String
+    
+    nombreSinExt = ObtenerNombreSinExtension()
+    
+    mostrarNombreSinExtension = nombreSinExt
+End Function
+
+
+' Función que devuelve solo el nombre del archivo (sin extensión)
+Function ObtenerNombreSinExtension()
+    Dim nombreCompleto As String
+    Dim posicionPunto As Integer
+    
+    ' Obtener el nombre completo con extensión
+    nombreCompleto = ThisWorkbook.Name
+    
+    ' Encontrar la posición del último punto (donde comienza la extensión)
+    posicionPunto = InStrRev(nombreCompleto, ".")
+    
+    ' Extraer solo la parte del nombre sin la extensión
+    If posicionPunto > 1 Then
+        ObtenerNombreSinExtension = Left(nombreCompleto, posicionPunto - 1)
+    Else
+        ' En caso de que no tenga extensión (caso raro)
+        ObtenerNombreSinExtension = nombreCompleto
+    End If
+End Function
